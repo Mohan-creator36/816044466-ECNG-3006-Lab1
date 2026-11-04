@@ -179,28 +179,28 @@ static uint64_t integerSqrt(uint64_t value)
 // Print an integer value with three decimal places.
 static void printThreeDecimals(uint64_t scaledValue)
 {
-    Serial.print((unsigned long)(scaledValue / 1000));
-    Serial.print('.');
+    Serial1.print((unsigned long)(scaledValue / 1000));
+    Serial1.print('.');
 
     uint16_t fraction = scaledValue % 1000;
 
     if (fraction < 100) {
-        Serial.print('0');
+        Serial1.print('0');
     }
 
     if (fraction < 10) {
-        Serial.print('0');
+        Serial1.print('0');
     }
 
-    Serial.print(fraction);
+    Serial1.print(fraction);
 }
 
 
 // Collect the ADC readings and calculate the required results.
 static void collectAndReport()
 {
-    Serial.println("Collecting 1000 samples...");
-    Serial.flush();
+    Serial1.println("Collecting 1000 samples...");
+    Serial1.flush();
 
     samplesCollected = 0;
     startTimer();
@@ -235,49 +235,47 @@ static void collectAndReport()
 
     uint64_t noiseMilli = integerSqrt(varianceScaled);
 
-    Serial.println();
-    Serial.println("--- Q9 RESULTS ---");
+    Serial1.println();
+    Serial1.println("--- Q9 RESULTS ---");
 
-    Serial.println("Hardware averaging: OFF (1 sample)");
-    Serial.println("Target sampling rate: 1000 Hz");
+    Serial1.println("Hardware averaging: OFF (1 sample)");
+    Serial1.println("Target sampling rate: 1000 Hz");
 
-    Serial.print("Samples collected: ");
-    Serial.println((unsigned int)samplesCollected);
+    Serial1.print("Samples collected: ");
+    Serial1.println((unsigned int)samplesCollected);
 
-    Serial.print("Signal (mean): ");
+    Serial1.print("Signal (mean): ");
     printThreeDecimals(meanMilli);
-    Serial.println(" ADC counts");
+    Serial1.println(" ADC counts");
 
-    Serial.print("Noise (standard deviation): ");
+    Serial1.print("Noise (standard deviation): ");
     printThreeDecimals(noiseMilli);
-    Serial.println(" ADC counts");
+    Serial1.println(" ADC counts");
 
     if (noiseMilli != 0) {
-        Serial.print("SNR (linear): ");
+        Serial1.print("SNR (linear): ");
 
         uint64_t snrMilli = meanMilli * 1000 / noiseMilli;
 
         printThreeDecimals(snrMilli);
-        Serial.println();
+        Serial1.println();
 
-        Serial.println("Calculate ENOB = log(SNR) / log(2).");
+        Serial1.println("Calculate ENOB = log(SNR) / log(2).");
     } else {
-        Serial.println("Noise unresolved in this dataset.");
-        Serial.println("SNR and ENOB cannot be calculated.");
+        Serial1.println("Noise unresolved in this dataset.");
+        Serial1.println("SNR and ENOB cannot be calculated.");
     }
 
-    Serial.println("--- END RESULTS ---");
-    Serial.println("Send r to collect another block.");
+    Serial1.println("--- END RESULTS ---");
+    Serial1.println("Send r to collect another block.");
 }
 
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial1.begin(115200);
 
-    // Wait for the USB serial connection before continuing.
-    while (!Serial) {
-    }
+    // Hardware UART starts without waiting for a USB connection.
 
     configureADC();
 
@@ -289,8 +287,8 @@ void setup()
 
 void loop()
 {
-    if (Serial.available()) {
-        char command = Serial.read();
+    if (Serial1.available()) {
+        char command = Serial1.read();
 
         if (command == 'r' || command == 'R') {
             collectAndReport();
